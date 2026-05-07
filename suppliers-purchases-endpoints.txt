@@ -1,0 +1,105 @@
+﻿// ========== SUPPLIERS (الموردين) ==========
+let suppliers = [
+  { id: 1, name: 'شركة البلاستيك', contact: 'أحمد', phone: '0123456789', email: 'ahmed@plastic.com' },
+  { id: 2, name: 'مصنع الصلب', contact: 'محمد', phone: '0112233445', email: 'mohamed@steel.com' },
+  { id: 3, name: 'منشار الخشب', contact: 'خالد', phone: '0109876543', email: 'khalid@wood.com' }
+]
+
+// Get all suppliers
+app.get('/api/suppliers', (req, res) => {
+  res.json(suppliers)
+})
+
+// Create supplier
+app.post('/api/suppliers', (req, res) => {
+  const { name, contact, phone, email } = req.body
+  const newSupplier = {
+    id: Date.now(),
+    name,
+    contact: contact || '',
+    phone: phone || '',
+    email: email || ''
+  }
+  suppliers.push(newSupplier)
+  res.status(201).json(newSupplier)
+})
+
+// Update supplier
+app.put('/api/suppliers/:id', (req, res) => {
+  const id = parseInt(req.params.id)
+  const index = suppliers.findIndex(s => s.id === id)
+  if (index === -1) return res.status(404).json({ message: 'Supplier not found' })
+  suppliers[index] = { ...suppliers[index], ...req.body }
+  res.json(suppliers[index])
+})
+
+// Delete supplier
+app.delete('/api/suppliers/:id', (req, res) => {
+  const id = parseInt(req.params.id)
+  const index = suppliers.findIndex(s => s.id === id)
+  if (index === -1) return res.status(404).json({ message: 'Supplier not found' })
+  suppliers.splice(index, 1)
+  res.status(204).send()
+})
+
+// ========== PURCHASES (المشتريات) ==========
+let purchases = [
+  { id: 1, supplierId: 1, materialId: 1, quantity: 100, price: 22, date: '2024-05-01', status: 'pending' },
+  { id: 2, supplierId: 2, materialId: 2, quantity: 50, price: 40, date: '2024-05-02', status: 'delivered' }
+]
+
+// Get all purchases
+app.get('/api/purchases', (req, res) => {
+  res.json(purchases)
+})
+
+// Create purchase
+app.post('/api/purchases', (req, res) => {
+  const { supplierId, materialId, quantity, price } = req.body
+  const supplier = suppliers.find(s => s.id === parseInt(supplierId))
+  const material = materials.find(m => m.id === parseInt(materialId))
+  
+  const newPurchase = {
+    id: Date.now(),
+    supplierId: parseInt(supplierId),
+    supplierName: supplier ? supplier.name : 'غير معروف',
+    materialId: parseInt(materialId),
+    materialName: material ? material.name : 'غير معروف',
+    quantity: parseFloat(quantity),
+    price: parseFloat(price),
+    total: parseFloat(quantity) * parseFloat(price),
+    date: new Date().toISOString().split('T')[0],
+    status: 'pending'
+  }
+  purchases.push(newPurchase)
+  res.status(201).json(newPurchase)
+})
+
+// Update purchase status (receive)
+app.put('/api/purchases/:id/receive', (req, res) => {
+  const id = parseInt(req.params.id)
+  const index = purchases.findIndex(p => p.id === id)
+  if (index === -1) return res.status(404).json({ message: 'Purchase not found' })
+  
+  purchases[index].status = 'delivered'
+  
+  // Update material stock
+  const purchase = purchases[index]
+  const materialIndex = materials.findIndex(m => m.id === purchase.materialId)
+  if (materialIndex !== -1) {
+    materials[materialIndex].stock += purchase.quantity
+  }
+  
+  res.json(purchases[index])
+})
+
+// Delete purchase
+app.delete('/api/purchases/:id', (req, res) => {
+  const id = parseInt(req.params.id)
+  const index = purchases.findIndex(p => p.id === id)
+  if (index === -1) return res.status(404).json({ message: 'Purchase not found' })
+  purchases.splice(index, 1)
+  res.status(204).send()
+})
+
+console.log('✅ Suppliers and Purchases endpoints added')

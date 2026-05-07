@@ -1,0 +1,53 @@
+﻿// ========== MATERIALS (المواد الخام) ==========
+let materials = [
+  { id: 1, name: 'بلاستيك', unit: 'كجم', price: 25, stock: 1000 },
+  { id: 2, name: 'صلب', unit: 'كجم', price: 45, stock: 500 },
+  { id: 3, name: 'خشب', unit: 'متر', price: 30, stock: 300 }
+]
+
+// Get all materials
+app.get('/api/materials', (req, res) => {
+  res.json(materials)
+})
+
+// Get single material
+app.get('/api/materials/:id', (req, res) => {
+  const id = parseInt(req.params.id)
+  const material = materials.find(m => m.id === id)
+  if (!material) return res.status(404).json({ message: 'Material not found' })
+  res.json(material)
+})
+
+// Create material
+app.post('/api/materials', (req, res) => {
+  const { name, unit, price, stock } = req.body
+  const newMaterial = {
+    id: Date.now(),
+    name,
+    unit: unit || 'قطعة',
+    price: parseFloat(price),
+    stock: parseFloat(stock) || 0
+  }
+  materials.push(newMaterial)
+  res.status(201).json(newMaterial)
+})
+
+// Update material
+app.put('/api/materials/:id', (req, res) => {
+  const id = parseInt(req.params.id)
+  const index = materials.findIndex(m => m.id === id)
+  if (index === -1) return res.status(404).json({ message: 'Material not found' })
+  materials[index] = { ...materials[index], ...req.body }
+  res.json(materials[index])
+})
+
+// Delete material
+app.delete('/api/materials/:id', (req, res) => {
+  const id = parseInt(req.params.id)
+  const index = materials.findIndex(m => m.id === id)
+  if (index === -1) return res.status(404).json({ message: 'Material not found' })
+  materials.splice(index, 1)
+  res.status(204).send()
+})
+
+console.log('✅ Materials endpoints added')

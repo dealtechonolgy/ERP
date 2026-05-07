@@ -1,0 +1,42 @@
+﻿// ========== BOM (قائمة المكونات) ==========
+let bom = [
+  { id: 1, productId: 1, materialId: 1, quantity: 2, materialName: 'بلاستيك' },
+  { id: 2, productId: 1, materialId: 3, quantity: 3, materialName: 'خشب' },
+  { id: 3, productId: 2, materialId: 2, quantity: 1, materialName: 'صلب' },
+  { id: 4, productId: 2, materialId: 3, quantity: 2, materialName: 'خشب' }
+]
+
+// Get BOM for specific product
+app.get('/api/bom/:productId', (req, res) => {
+  const productId = parseInt(req.params.productId)
+  const bomItems = bom.filter(b => b.productId === productId)
+  res.json(bomItems)
+})
+
+// Add BOM item
+app.post('/api/bom', (req, res) => {
+  const { productId, materialId, quantity } = req.body
+  const material = materials.find(m => m.id === parseInt(materialId))
+  if (!material) return res.status(404).json({ message: 'Material not found' })
+  
+  const newBomItem = {
+    id: Date.now(),
+    productId: parseInt(productId),
+    materialId: parseInt(materialId),
+    quantity: parseFloat(quantity),
+    materialName: material.name
+  }
+  bom.push(newBomItem)
+  res.status(201).json(newBomItem)
+})
+
+// Delete BOM item
+app.delete('/api/bom/:id', (req, res) => {
+  const id = parseInt(req.params.id)
+  const index = bom.findIndex(b => b.id === id)
+  if (index === -1) return res.status(404).json({ message: 'BOM item not found' })
+  bom.splice(index, 1)
+  res.status(204).send()
+})
+
+console.log('✅ BOM endpoints added')

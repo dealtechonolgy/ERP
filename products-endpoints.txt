@@ -1,0 +1,54 @@
+﻿// ========== PRODUCTS (المنتجات) ==========
+let products = [
+  { id: 1, name: 'طاولة', price: 500, productionHours: 2.5 },
+  { id: 2, name: 'كرسي', price: 250, productionHours: 1.5 },
+  { id: 3, name: 'دولاب', price: 1200, productionHours: 4.0 }
+]
+
+// Get all products
+app.get('/api/products', (req, res) => {
+  res.json(products)
+})
+
+// Get single product
+app.get('/api/products/:id', (req, res) => {
+  const id = parseInt(req.params.id)
+  const product = products.find(p => p.id === id)
+  if (!product) return res.status(404).json({ message: 'Product not found' })
+  res.json(product)
+})
+
+// Create product
+app.post('/api/products', (req, res) => {
+  const { name, price, productionHours } = req.body
+  const newProduct = {
+    id: Date.now(),
+    name,
+    price: parseFloat(price),
+    productionHours: parseFloat(productionHours) || 1
+  }
+  products.push(newProduct)
+  res.status(201).json(newProduct)
+})
+
+// Update product
+app.put('/api/products/:id', (req, res) => {
+  const id = parseInt(req.params.id)
+  const index = products.findIndex(p => p.id === id)
+  if (index === -1) return res.status(404).json({ message: 'Product not found' })
+  products[index] = { ...products[index], ...req.body }
+  res.json(products[index])
+})
+
+// Delete product
+app.delete('/api/products/:id', (req, res) => {
+  const id = parseInt(req.params.id)
+  const index = products.findIndex(p => p.id === id)
+  if (index === -1) return res.status(404).json({ message: 'Product not found' })
+  products.splice(index, 1)
+  // Also delete related BOM items
+  bom = bom.filter(b => b.productId !== id)
+  res.status(204).send()
+})
+
+console.log('✅ Products endpoints added')

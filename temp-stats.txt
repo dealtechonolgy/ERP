@@ -1,0 +1,17 @@
+// ========== DASHBOARD STATS ==========
+app.get('/api/dashboard/stats', authMiddleware, async (req, res) => {
+  const [projects, workers, materials, workOrders] = await Promise.all([
+    prisma.project.count(),
+    prisma.worker.count(),
+    prisma.material.aggregate({ _sum: { stock: true } }),
+    prisma.workOrder.count({ where: { status: { not: '?????' } } })
+  ])
+  
+  res.json({
+    projects,
+    totalExpenses: 0,
+    workers,
+    totalStock: materials._sum.stock || 0,
+    activeWorkOrders: workOrders
+  })
+})

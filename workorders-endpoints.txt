@@ -1,0 +1,76 @@
+﻿// ========== WORK ORDERS (أوامر التصنيع) ==========
+let workOrders = [
+  { id: 1, productId: 1, productName: 'طاولة', quantity: 10, completed: 5, status: 'قيد التصنيع', date: '2024-05-01' },
+  { id: 2, productId: 2, productName: 'كرسي', quantity: 20, completed: 0, status: 'معلق', date: '2024-05-02' }
+]
+
+// Get all work orders
+app.get('/api/work-orders', (req, res) => {
+  res.json(workOrders)
+})
+
+// Get single work order
+app.get('/api/work-orders/:id', (req, res) => {
+  const id = parseInt(req.params.id)
+  const order = workOrders.find(o => o.id === id)
+  if (!order) return res.status(404).json({ message: 'Work order not found' })
+  res.json(order)
+})
+
+// Create work order
+app.post('/api/work-orders', (req, res) => {
+  const { productId, quantity } = req.body
+  const product = products.find(p => p.id === parseInt(productId))
+  if (!product) return res.status(404).json({ message: 'Product not found' })
+  
+  const newOrder = {
+    id: Date.now(),
+    productId: parseInt(productId),
+    productName: product.name,
+    quantity: parseFloat(quantity),
+    completed: 0,
+    status: 'معلق',
+    date: new Date().toISOString().split('T')[0]
+  }
+  workOrders.push(newOrder)
+  res.status(201).json(newOrder)
+})
+
+// Update work order
+app.put('/api/work-orders/:id', (req, res) => {
+  const id = parseInt(req.params.id)
+  const index = workOrders.findIndex(o => o.id === id)
+  if (index === -1) return res.status(404).json({ message: 'Work order not found' })
+  workOrders[index] = { ...workOrders[index], ...req.body }
+  res.json(workOrders[index])
+})
+
+// Delete work order
+app.delete('/api/work-orders/:id', (req, res) => {
+  const id = parseInt(req.params.id)
+  const index = workOrders.findIndex(o => o.id === id)
+  if (index === -1) return res.status(404).json({ message: 'Work order not found' })
+  workOrders.splice(index, 1)
+  res.status(204).send()
+})
+
+// Start production
+app.post('/api/work-orders/:id/start', (req, res) => {
+  const id = parseInt(req.params.id)
+  const index = workOrders.findIndex(o => o.id === id)
+  if (index === -1) return res.status(404).json({ message: 'Work order not found' })
+  workOrders[index].status = 'قيد التصنيع'
+  res.json(workOrders[index])
+})
+
+// Complete production
+app.post('/api/work-orders/:id/complete', (req, res) => {
+  const id = parseInt(req.params.id)
+  const index = workOrders.findIndex(o => o.id === id)
+  if (index === -1) return res.status(404).json({ message: 'Work order not found' })
+  workOrders[index].status = 'مكتمل'
+  workOrders[index].completed = workOrders[index].quantity
+  res.json(workOrders[index])
+})
+
+console.log('✅ Work Orders endpoints added')
